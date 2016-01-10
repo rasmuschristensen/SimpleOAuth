@@ -39,21 +39,23 @@ namespace SimpleOAuth.iOS.Renderers
 				else {
 					var access = e.Account.Properties ["access_token"];
 
-					var client = new HttpClient (new ModernHttpClient.NativeMessageHandler ());
+					using (var handler = new ModernHttpClient.NativeMessageHandler ()) {
+						using (var client = new HttpClient (handler)) {
+							var content = new FormUrlEncodedContent (new[] {
+								new KeyValuePair<string, string> ("accesstoken", access),
+								new KeyValuePair<string, string> ("provider", "facebook")
+							});
+								
+							var authenticateResponse = await client.PostAsync (new Uri ("http://windows:8080/Token"), content);
 
-					var content = new FormUrlEncodedContent (new[] {
-						new KeyValuePair<string, string> ("accesstoken", access),
-						new KeyValuePair<string, string> ("provider", "facebook")
-					});
+							if (authenticateResponse.IsSuccessStatusCode) {
 
+								// store user is logged in, request additional info...
+							}
 
-					var authenticateResponse = await client.PostAsync (new Uri ("http://windows:8080/api/authentication/Login"), content);
-
-
-					if (authenticateResponse.IsSuccessStatusCode) {
-
-						// store user is logged in, request additional info...
+						}
 					}
+
 
 
 					((App)App.Current).PresentMain ();
@@ -69,6 +71,14 @@ namespace SimpleOAuth.iOS.Renderers
 			vc.ChildViewControllers [0].NavigationItem.LeftBarButtonItem = new UIBarButtonItem (
 				UIBarButtonSystemItem.Cancel, async (o, eargs) => await App.Current.MainPage.Navigation.PopModalAsync ()
 			);
+		}
+	}
+
+	public class AuthenticatedUser
+	{
+		public string Access_Token {
+			get;
+			set;
 		}
 	}
 }
