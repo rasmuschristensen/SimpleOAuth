@@ -134,7 +134,7 @@
   <ItemGroup>
     <Compile Include="App_Start\Startup.Auth.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
-    <Compile Include="Controllers\VehiclesController.cs" />
+    <Compile Include="Controllers\GadgetsController.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Security\SimpleAuthTokenProvider.cs" />
     <Compile Include="Startup.cs" />
