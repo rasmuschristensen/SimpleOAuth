@@ -15,6 +15,7 @@ namespace SimpleOAuth
 
 		public void PresentMain ()
 		{
+			MainPage = new NavigationPage (new GadgetsView ());
 		}
 
 		protected override void OnStart ()

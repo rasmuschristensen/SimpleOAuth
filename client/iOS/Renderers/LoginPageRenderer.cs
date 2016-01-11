@@ -7,6 +7,8 @@ using Xamarin.Auth;
 using System.Net.Http;
 using System.Collections.Generic;
 using UIKit;
+using Newtonsoft.Json;
+using SimpleOAuth.Helpers;
 
 [assembly: ExportRenderer (typeof(LoginPage), typeof(LoginPageRenderer))]
 namespace SimpleOAuth.iOS.Renderers
@@ -27,7 +29,7 @@ namespace SimpleOAuth.iOS.Renderers
 				clientId      : "933191510091844",
 				scope: "email",
 				authorizeUrl: new Uri ("https://www.facebook.com/dialog/oauth"),
-				redirectUrl: new Uri ("http://devlocal.com/NearbyAPI/login_success.html"));
+				redirectUrl: new Uri ("http://yourValidEndpoint.com/login_success.html"));
 
 			// we do this to be able to control the cancel flow outself...
 			auth.AllowCancel = false;
@@ -39,24 +41,31 @@ namespace SimpleOAuth.iOS.Renderers
 				else {
 					var access = e.Account.Properties ["access_token"];
 
-					var client = new HttpClient (new ModernHttpClient.NativeMessageHandler ());
+					using (var handler = new ModernHttpClient.NativeMessageHandler ()) {
+						using (var client = new HttpClient (handler)) {
+							var content = new FormUrlEncodedContent (new[] {
+								new KeyValuePair<string, string> ("accesstoken", access),
+								new KeyValuePair<string, string> ("grant_type", "facebook")
+							});
+								
+							var authenticateResponse = await client.PostAsync (new Uri ("http://windows:8080/Token"), content);
 
-					var content = new FormUrlEncodedContent (new[] {
-						new KeyValuePair<string, string> ("accesstoken", access),
-						new KeyValuePair<string, string> ("provider", "facebook")
-					});
+							if (authenticateResponse.IsSuccessStatusCode) {
 
+								var responseContent = await authenticateResponse.Content.ReadAsStringAsync ();
+								var authenticationTicket = JsonConvert.DeserializeObject<AuthenticatedUser> (responseContent);
 
-					var authenticateResponse = await client.PostAsync (new Uri ("http://windows:8080/api/authentication/Login"), content);
+								if (authenticationTicket != null) {
+									var apiAccessToken = authenticationTicket.Access_Token;
+									Settings.ApiAccessToken = apiAccessToken;
 
-
-					if (authenticateResponse.IsSuccessStatusCode) {
-
-						// store user is logged in, request additional info...
+									((App)App.Current).PresentMain ();
+								}
+							}
+						}
 					}
+						
 
-
-					((App)App.Current).PresentMain ();
 				}
 			};			
 				
@@ -69,6 +78,14 @@ namespace SimpleOAuth.iOS.Renderers
 			vc.ChildViewControllers [0].NavigationItem.LeftBarButtonItem = new UIBarButtonItem (
 				UIBarButtonSystemItem.Cancel, async (o, eargs) => await App.Current.MainPage.Navigation.PopModalAsync ()
 			);
+		}
+	}
+
+	public class AuthenticatedUser
+	{
+		public string Access_Token {
+			get;
+			set;
 		}
 	}
 }
