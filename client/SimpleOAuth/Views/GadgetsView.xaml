@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<ContentPage
+	xmlns="http://xamarin.com/schemas/2014/forms"
+	xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+	x:Class="SimpleOAuth.Views.GadgetsView"
+	Title="My gadgets">
+	<ContentPage.Content>
+		<StackLayout
+			Padding="10">
+			<ListView
+				ItemsSource="{Binding Gadgets}">
+				<ListView.ItemTemplate>
+					<DataTemplate>
+						<TextCell
+							Text="{Binding Name}">
+						</TextCell>
+					</DataTemplate>
+				</ListView.ItemTemplate>
+			</ListView>
+		</StackLayout>
+	</ContentPage.Content>
+</ContentPage>
