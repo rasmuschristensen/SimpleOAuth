@@ -55,7 +55,6 @@ namespace SimpleOAuth.ViewModels
 					requestMessage.Headers.Add ("Accept", "application/json");
 					requestMessage.Headers.Authorization = new AuthenticationHeaderValue ("Bearer", Settings.ApiAccessToken);
 
-
 					var response = await client.SendAsync (requestMessage);
 					var content = await response.Content.ReadAsStringAsync ();
 

@@ -1,44 +1,46 @@
 ﻿using System;
-using SimpleOAuth.Views;
-using Xamarin.Forms;
-using SimpleOAuth.iOS.Renderers;
-using Xamarin.Forms.Platform.iOS;
+using Xamarin.Forms.Platform.Android;
 using Xamarin.Auth;
 using System.Net.Http;
 using System.Collections.Generic;
-using UIKit;
 using Newtonsoft.Json;
+using Android.App;
 using SimpleOAuth.Helpers;
 
-[assembly: ExportRenderer (typeof(LoginPage), typeof(LoginPageRenderer))]
-namespace SimpleOAuth.iOS.Renderers
+namespace SimpleOAuth.Droid.Renderers
 {
-	public class LoginPageRenderer : PageRenderer
+	public class LoginPageRenderer :  PageRenderer
 	{
 		public LoginPageRenderer ()
 		{
 		}
 
-		public override void ViewDidAppear (bool animated)
+		protected override void OnElementChanged (ElementChangedEventArgs<Xamarin.Forms.Page> e)
 		{
-			base.ViewDidAppear (animated);
+			base.OnElementChanged (e);
+			LoginToFacebook (false);
+		}
+
+		void LoginToFacebook (bool allowCancel)
+		{
+			var activity = this.Context as Activity;
 			OAuth2Authenticator auth = null;
-					
+
 			//todo add to appsettings
 			auth = new OAuth2Authenticator (
 				clientId      : "933191510091844",
 				scope: "email",
 				authorizeUrl: new Uri ("https://www.facebook.com/dialog/oauth"),
-				redirectUrl: new Uri ("http://nearby-test.azurewebsites.net/login_success.html"));
+				redirectUrl: new Uri ("http://yourValidEndpoint.com/login_success.html"));
 
-			// we do this to be able to control the cancel flow outself...
-			auth.AllowCancel = false;
+			auth.AllowCancel = allowCancel;
 
-			auth.Completed += async (sender, e) => {
-
-				if (!e.IsAuthenticated)
+			// If authorization succeeds or is canceled, .Completed will be fired.
+			auth.Completed += async (s, e) => {
+				if (!e.IsAuthenticated) {
 					return;
-				else {
+				} else {
+
 					var access = e.Account.Properties ["access_token"];
 
 					using (var handler = new ModernHttpClient.NativeMessageHandler ()) {
@@ -47,7 +49,7 @@ namespace SimpleOAuth.iOS.Renderers
 								new KeyValuePair<string, string> ("accesstoken", access),
 								new KeyValuePair<string, string> ("grant_type", "facebook")
 							});
-								
+
 							var authenticateResponse = await client.PostAsync (new Uri ("http://windows:8080/Token"), content);
 
 							if (authenticateResponse.IsSuccessStatusCode) {
@@ -64,20 +66,11 @@ namespace SimpleOAuth.iOS.Renderers
 							}
 						}
 					}
-						
-
 				}
-			};			
-				
-			UIViewController vc = auth.GetUI ();
+			};
 
-			ViewController.AddChildViewController (vc);
-			ViewController.View.Add (vc.View);
-
-			// add out custom cancel button, to be able to navigate back
-			vc.ChildViewControllers [0].NavigationItem.LeftBarButtonItem = new UIBarButtonItem (
-				UIBarButtonSystemItem.Cancel, async (o, eargs) => await App.Current.MainPage.Navigation.PopModalAsync ()
-			);
+			var intent = auth.GetUI (activity);
+			activity.StartActivity (intent);
 		}
 	}
 
