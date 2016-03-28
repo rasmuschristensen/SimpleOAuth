@@ -24,7 +24,6 @@ namespace SimpleAPI.Security
                 string email = response.email;
                 string firstname = response.first_name;
                 string lastname = response.last_name;
-
                 // place your own logic to lookup and/or create users....
 
                 // your choice of claims...

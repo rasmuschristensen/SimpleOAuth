@@ -29,7 +29,7 @@ namespace SimpleOAuth.iOS.Renderers
 				clientId      : "933191510091844",
 				scope: "email",
 				authorizeUrl: new Uri ("https://www.facebook.com/dialog/oauth"),
-				redirectUrl: new Uri ("http://nearby-test.azurewebsites.net/login_success.html"));
+				redirectUrl: new Uri ("http://yourValidEndpoint.com/login_success.html"));
 
 			// we do this to be able to control the cancel flow outself...
 			auth.AllowCancel = false;
